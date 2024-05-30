@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File Actions</title>
+    <style>
+        #contentDiv {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <form id="myForm">
+        <select id="val" name="val" required>
+            <option value="read">Read</option>
+            <option value="write">Write</option>
+            <option value="delete">Delete</option>
+        </select>
+        <label for="filename">Filename:</label>
+        <input type="text" id="filename" name="filename" required>
+        <div id="contentDiv">
+            <label for="content">Content:</label>
+            <textarea id="content" name="content"></textarea>
+        </div>
+        <button type="submit">Submit</button>
+    </form>
+    <div id="current">No update right now</div>
+
+    <script>
+        document.getElementById('val').addEventListener('change', function(event) {
+            const contentDiv = document.getElementById('contentDiv');
+            if (event.target.value === 'write') {
+                contentDiv.style.display = 'block';
+            } else {
+                contentDiv.style.display = 'none';
+            }
+        });
+
+        document.getElementById('myForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const action = document.getElementById('val').value;
+            const filename = document.getElementById('filename').value;
+            const content = action === 'write' ? document.getElementById('content').value : null;
+
+            const requestData = { action, filename };
+            if (content !== null) {
+                requestData.content = content;
+            }
+
+            fetch('/file-action', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.data) {
+                    document.getElementById('current').textContent = `${data.message}: ${data.data}`;
+                } else {
+                    document.getElementById('current').textContent = data.message;
+                }
+            })
+            .catch(error => {
+                document.getElementById('current').textContent = `Error: ${error}`;
+            });
+        });
+    </script>
+</body>
+</html>
